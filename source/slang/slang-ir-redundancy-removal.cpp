@@ -1,8 +1,8 @@
 #include "slang-ir-redundancy-removal.h"
 
 #include "slang-ir-dominators.h"
-#include "slang-ir-util.h"
 #include "slang-ir-simplify-cfg.h"
+#include "slang-ir-util.h"
 
 namespace Slang
 {
@@ -147,7 +147,11 @@ bool removeRedundancyInFunc(IRGlobalValueWithCode* func, bool tryToHoist)
     {
         for (auto block : workList)
         {
-            result |= context.removeRedundancyInBlock(mapBlockToDeduplicateContext, func, block, tryToHoist);
+            result |= context.removeRedundancyInBlock(
+                mapBlockToDeduplicateContext,
+                func,
+                block,
+                tryToHoist);
 
             for (auto child : context.dom->getImmediatelyDominatedBlocks(block))
             {

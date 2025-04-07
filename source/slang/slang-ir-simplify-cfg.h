@@ -1,8 +1,8 @@
 // slang-ir-simplify-cfg.h
 #pragma once
 
-#include "slang-ir-restructure.h"
 #include "slang-ir-dominators.h"
+#include "slang-ir-restructure.h"
 
 namespace Slang
 {
@@ -25,7 +25,10 @@ struct CFGSimplificationOptions
     static CFGSimplificationOptions getFast() { return CFGSimplificationOptions{false, false}; }
 };
 
-bool isTrivialSingleIterationLoop(CFGSimplificationContext& context, IRGlobalValueWithCode* func, IRLoop* loop);
+bool isTrivialSingleIterationLoop(
+    CFGSimplificationContext& context,
+    IRGlobalValueWithCode* func,
+    IRLoop* loop);
 
 /// Simplifies control flow graph by merging basic blocks that
 /// forms a simple linear chain.
