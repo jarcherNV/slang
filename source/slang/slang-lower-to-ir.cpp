@@ -603,6 +603,7 @@ struct IRGenContext
     FunctionDeclBase* funcDecl;
 
     bool includeDebugInfo = false;
+    bool useSeparateDebugInfo = false;
 
     // The element index if we are inside an `expand` expression.
     IRInst* expandIndex = nullptr;
@@ -11991,11 +11992,14 @@ RefPtr<IRModule> generateIRForTranslationUnit(
     context->irBuilder = builder;
     context->includeDebugInfo =
         compileRequest->getLinkage()->m_optionSet.getDebugInfoLevel() != DebugInfoLevel::None;
+    context->useSeparateDebugInfo =
+        compileRequest->getLinkage()->m_optionSet.shouldEmitSeparateDebugInfo();
 
     // We need to emit IR for all public/exported symbols
     // in the translation unit.
     //
     // If debug info is enabled, we emit the DebugSource insts for each source file into IR.
+    // Also emit a single DebugBuildIdentifier into IR.
     if (context->includeDebugInfo)
     {
         builder->setInsertInto(module->getModuleInst());
