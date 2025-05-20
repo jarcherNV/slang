@@ -603,6 +603,7 @@ struct IRGenContext
     FunctionDeclBase* funcDecl;
 
     bool includeDebugInfo = false;
+    bool useSeparateDebugInfo = false;
 
     // The element index if we are inside an `expand` expression.
     IRInst* expandIndex = nullptr;
@@ -11959,6 +11960,21 @@ static void ensureAllDeclsRec(IRGenContext* context, Decl* decl)
     }
 }
 
+// Helper function to convert a 20 byte SHA1 to a hexadecimal string,
+// needed for the build identifier instruction.
+String getBuildIdentifierString(Module* module)
+{
+    ComPtr<ISlangBlob> hashBlob;
+    module->getEntryPointHash(0, 0, hashBlob.writeRef());
+
+    const uint8_t* data = reinterpret_cast<const uint8_t*>(hashBlob->getBufferPointer());
+    size_t size = hashBlob->getBufferSize();
+    StringBuilder sb;
+    for (size_t i = 0; i < size; ++i)
+        sb << StringUtil::makeStringWithFormat("%02x", data[i]);
+    return sb.produceString();
+}
+
 RefPtr<IRModule> generateIRForTranslationUnit(
     ASTBuilder* astBuilder,
     TranslationUnitRequest* translationUnit)
@@ -11991,11 +12007,14 @@ RefPtr<IRModule> generateIRForTranslationUnit(
     context->irBuilder = builder;
     context->includeDebugInfo =
         compileRequest->getLinkage()->m_optionSet.getDebugInfoLevel() != DebugInfoLevel::None;
+    context->useSeparateDebugInfo =
+        compileRequest->getLinkage()->m_optionSet.shouldEmitSeparateDebugInfo();
 
     // We need to emit IR for all public/exported symbols
     // in the translation unit.
     //
     // If debug info is enabled, we emit the DebugSource insts for each source file into IR.
+    // Also emit a single DebugBuildIdentifier into IR.
     if (context->includeDebugInfo)
     {
         builder->setInsertInto(module->getModuleInst());
@@ -12005,6 +12024,17 @@ RefPtr<IRModule> generateIRForTranslationUnit(
                 source->getPathInfo().getMostUniqueIdentity().getUnownedSlice(),
                 source->getContent());
             context->shared->mapSourceFileToDebugSourceInst.add(source, debugSource);
+        }
+
+        // For now, only emit the debug build identifier if separate debug info is enabled
+        // and only if there are targets.
+        // TODO: Ultimately this needs to be changed to always emit the instruction.
+        if (context->useSeparateDebugInfo && linkage->targets.getCount() != 0)
+        {
+            // Build identifier is a hash of the source code and compile options.
+            String buildIdentifier = getBuildIdentifierString(translationUnit->getModule());
+            int buildIdentifierFlags = 0;
+            builder->emitDebugBuildIdentifier(buildIdentifier.getUnownedSlice(), buildIdentifierFlags);
         }
     }
 
