@@ -620,6 +620,12 @@ static IRBlock::SuccessorList getSuccessors(IRInst* terminator)
         end = begin + 1;
         break;
 
+    case kIROp_TryCall:
+        // tryCall <successBlock> <failBlock> <callee> <args>...
+        begin = operands + 0;
+        end = begin + 2;
+        break;
+
     default:
         SLANG_UNEXPECTED("unhandled terminator instruction");
         UNREACHABLE_RETURN(IRBlock::SuccessorList(nullptr, nullptr));
@@ -1821,7 +1827,7 @@ IRInst* IRBuilder::_createInst(
     m_dedupContext->getInstReplacementMap().tryGetValue(type, instReplacement);
     type = (IRType*)instReplacement;
 
-    if (getIROpInfo(op).flags & kIROpFlag_Hoistable)
+    if (isInstHoistable(op, type))
     {
         return _findOrEmitHoistableInst(
             type,
@@ -2527,7 +2533,8 @@ static void addGlobalValue(IRBuilder* builder, IRInst* value)
     //
     if (value->parent)
     {
-        SLANG_ASSERT(getIROpInfo(value->getOp()).isHoistable());
+        SLANG_ASSERT(
+            getIROpInfo(value->getOp()).isHoistable() || isSpecConstRateType(value->getFullType()));
         return;
     }
 
@@ -8604,6 +8611,7 @@ bool IRInst::mightHaveSideEffects(SideEffectAnalysisOptions options)
     case kIROp_GetElement:
     case kIROp_GetElementPtr:
     case kIROp_GetOffsetPtr:
+    case kIROp_GetOptiXRayPayloadPtr:
     case kIROp_UpdateElement:
     case kIROp_MeshOutputRef:
     case kIROp_MakeVectorFromScalar:
