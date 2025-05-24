@@ -2111,9 +2111,8 @@ static SlangResult stripDbgSpirvFromArtifact(
 {
     // Standard debug opcodes to strip out:
     // OpName, OpMemberName, OpString, OpLine, OpNoLine.
-    static const uint16_t debugOpCodeVals[] = {
-        SpvOpName, SpvOpMemberName, SpvOpString, SpvOpLine, SpvOpNoLine
-    };
+    static const uint16_t debugOpCodeVals[] =
+        {SpvOpName, SpvOpMemberName, SpvOpString, SpvOpLine, SpvOpNoLine};
     // If the instruction is an extended instruction, then we also need
     // to check if the instruction number is for a debug instruction as
     // listed in slang-emit-spirv-ops-debug-info-ext.h
@@ -2188,7 +2187,8 @@ static SlangResult stripDbgSpirvFromArtifact(
         }
 
         // Also check if the instruction is an extended instruction containing DebugInfo.
-        if (opCode == SpvOpExtInst) {
+        if (opCode == SpvOpExtInst)
+        {
             // ignore this if the instruction contains DebugInfo.
             uint32_t extInstInstructionNumber = spirvWords[i + 4];
             if (debugExtInstNumbers.contains(extInstInstructionNumber))
@@ -2364,7 +2364,8 @@ static SlangResult createArtifactFromIR(
             if (targetCompilerOptions.shouldEmitSeparateDebugInfo())
             {
                 auto strippedArtifact = ArtifactUtil::createArtifactForCompileTarget(SLANG_SPIRV);
-                SLANG_RETURN_ON_FAIL(stripDbgSpirvFromArtifact(optimizedArtifact, strippedArtifact));
+                SLANG_RETURN_ON_FAIL(
+                    stripDbgSpirvFromArtifact(optimizedArtifact, strippedArtifact));
                 artifact = _Move(strippedArtifact);
                 dbgArtifact = _Move(optimizedArtifact);
             }
@@ -2401,8 +2402,10 @@ SlangResult emitSPIRVForEntryPointsDirectly(
     // Create the artifact containing the main SPIRV data, and the debug SPIRV
     // data if requested by the command line arg -separate-debug-info.
     Slang::ComPtr<Slang::IArtifact> dbgArtifact;
-    auto artifact = ArtifactUtil::createArtifactForCompileTarget(asExternal(codeGenContext->getTargetFormat()));
-    SLANG_RETURN_ON_FAIL(createArtifactFromIR(codeGenContext, irModule, irEntryPoints, artifact, dbgArtifact));
+    auto artifact =
+        ArtifactUtil::createArtifactForCompileTarget(asExternal(codeGenContext->getTargetFormat()));
+    SLANG_RETURN_ON_FAIL(
+        createArtifactFromIR(codeGenContext, irModule, irEntryPoints, artifact, dbgArtifact));
     ArtifactUtil::addAssociated(artifact, linkedIR.metadata);
 
     // Associate the debug artifact with the main artifact.
