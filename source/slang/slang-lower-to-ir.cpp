@@ -12034,7 +12034,9 @@ RefPtr<IRModule> generateIRForTranslationUnit(
             // Build identifier is a hash of the source code and compile options.
             String buildIdentifier = getBuildIdentifierString(translationUnit->getModule());
             int buildIdentifierFlags = 0;
-            builder->emitDebugBuildIdentifier(buildIdentifier.getUnownedSlice(), buildIdentifierFlags);
+            builder->emitDebugBuildIdentifier(
+                buildIdentifier.getUnownedSlice(),
+                buildIdentifierFlags);
         }
     }
 
