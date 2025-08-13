@@ -982,3 +982,45 @@ SLANG_API void spSetDiagnosticFlags(slang::ICompileRequest* request, SlangDiagno
 
     request->setDiagnosticFlags(flags);
 }
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!! Blob Creation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+SLANG_EXTERN_C SLANG_API ISlangBlob* slang_createBlob(const void* data, size_t size)
+{
+    // If data is null, size must be 0.
+    if (!data && size > 0)
+        return nullptr;
+
+    Slang::ComPtr<ISlangBlob> blob = Slang::RawBlob::create(data, size);
+    if (!blob)
+        return nullptr;
+
+    return blob.detach();
+}
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!! Module Loading !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+SLANG_EXTERN_C SLANG_API slang::IModule* slang_loadModuleFromSource(
+    slang::ISession* session,
+    const char* moduleName,
+    const char* path,
+    const void* source,
+    size_t sourceSize,
+    ISlangBlob** outDiagnostics)
+{
+    if (!session || !moduleName || !path)
+        return nullptr;
+
+    // If source is null, size must be 0.
+    if (!source && sourceSize > 0)
+        return nullptr;
+
+    // Create a blob from the source data using the new slang_createBlob function
+    Slang::ComPtr<ISlangBlob> sourceBlob;
+    sourceBlob = slang_createBlob(source, sourceSize);
+    if (!sourceBlob)
+        return nullptr;
+
+    // Load the module using the existing blob-based API
+    return session->loadModuleFromSource(moduleName, path, sourceBlob, outDiagnostics);
+}

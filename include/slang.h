@@ -4687,6 +4687,34 @@ struct SlangGlobalSessionDesc
     uint32_t reserved[16] = {};
 };
 
+/* Create a blob from binary data.
+ *
+ * @param data Pointer to the binary data to store in the blob.
+ * @param size Size of the data in bytes.
+ * @return The created blob on success, or nullptr on failure.
+ */
+SLANG_EXTERN_C SLANG_API ISlangBlob* slang_createBlob(
+    const void* data,
+    size_t size);
+
+/* Load a module from source code with size specification.
+ *
+ * @param session The session to load the module into.
+ * @param moduleName The name of the module.
+ * @param path The path for the module.
+ * @param source Pointer to the source code data.
+ * @param sourceSize Size of the source code data in bytes.
+ * @param outDiagnostics (out, optional) Diagnostics output.
+ * @return The loaded module on success, or nullptr on failure.
+ */
+SLANG_EXTERN_C SLANG_API slang::IModule* slang_loadModuleFromSource(
+    slang::ISession* session,
+    const char* moduleName,
+    const char* path,
+    const void* source,
+    size_t sourceSize,
+    ISlangBlob** outDiagnostics = nullptr);
+
 /* Create a global session, with the built-in core module.
 
 @param apiVersion Pass in SLANG_API_VERSION
